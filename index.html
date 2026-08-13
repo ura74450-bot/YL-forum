@@ -307,3 +307,1271 @@ textarea{
  font-size:19px;
  margin:0 0 7px
 }
+
+.editor-bottom{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:15px;
+ margin-top:16px
+}
+
+.actions{
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap
+}
+
+/* MODAL */
+
+.modal{
+ display:none;
+ position:fixed;
+ inset:0;
+ background:#0006;
+ z-index:50;
+ padding:18px;
+ align-items:center;
+ justify-content:center
+}
+
+.modal.show{display:flex}
+
+.modal-box{
+ width:min(430px,100%);
+ background:white;
+ border-radius:18px;
+ padding:24px;
+ box-shadow:0 20px 60px #0002
+}
+
+.modal-top{
+ display:flex;
+ justify-content:space-between;
+ align-items:center
+}
+
+.modal-top h2{margin:0}
+
+.close{
+ background:#eef1f5;
+ color:#263247;
+ padding:8px 11px
+}
+
+.error{
+ color:#d93030;
+ font-size:13px;
+ min-height:20px;
+ margin-bottom:5px
+}
+
+.success{
+ color:#23844d;
+ font-size:13px;
+ min-height:20px
+}
+
+@media(max-width:720px){
+
+ .editor-grid{
+  grid-template-columns:1fr
+ }
+
+ .editor-bottom{
+  align-items:flex-start;
+  flex-direction:column
+ }
+}
+
+@media(max-width:600px){
+
+ .nav{
+  padding:12px 14px
+ }
+
+ .forum{
+  font-size:17px
+ }
+
+ .logo{
+  font-size:22px
+ }
+
+ .nav-actions{
+  gap:6px
+ }
+
+ .user{
+  display:none
+ }
+
+ main{
+  padding:22px 12px 50px
+ }
+
+ .hero{
+  padding:21px 18px;
+  border-radius:15px
+ }
+
+ .hero h1{
+  font-size:28px
+ }
+
+ .news{
+  padding:18px;
+  border-radius:15px
+ }
+
+ .news h2{
+  font-size:20px
+ }
+
+ .body{
+  font-size:15px
+ }
+
+ .editor{
+  padding:18px;
+  border-radius:15px
+ }
+
+ .toolbar button{
+  font-size:12px;
+  padding:8px
+ }
+
+ button{
+  padding:10px 12px
+ }
+
+ .editor-head{
+  flex-direction:column
+ }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="nav">
+
+<div class="logo">
+<span class="y">Y</span>
+<span class="l">L</span>
+<span class="forum">forum</span>
+</div>
+
+<div class="nav-actions">
+
+<span class="user" id="userLabel"></span>
+
+<button id="loginBtn" type="button" onclick="openAuth('login')">
+Войти
+</button>
+
+<button class="secondary" id="registerBtn" type="button" onclick="openAuth('register')">
+Register
+</button>
+
+<button
+ class="secondary"
+ id="logoutBtn"
+ type="button"
+ style="display:none"
+ onclick="logout()">
+Выйти
+</button>
+
+</div>
+</div>
+</header>
+
+
+<main>
+
+<section class="hero">
+<h1>Новости YL</h1>
+<p>Новости, обновления и публикации проекта YL.</p>
+</section>
+
+
+<section class="editor" id="editor">
+
+<div class="editor-head">
+
+<div>
+<h2>Редактор новости</h2>
+<p class="hint">
+Создайте публикацию для YL forum
+</p>
+</div>
+
+<span class="draft" id="draftStatus">
+Готов к публикации
+</span>
+
+</div>
+
+
+<input
+ id="title"
+ maxlength="200"
+ placeholder="Заголовок новости"
+>
+
+
+<div class="editor-grid">
+
+<div>
+
+<div class="toolbar">
+
+<button type="button" onclick="wrap('**','**')">
+<b>B</b>
+</button>
+
+<button type="button" onclick="wrap('*','*')">
+<i>I</i>
+</button>
+
+<button type="button" onclick="prefix('## ')">
+H2
+</button>
+
+<button type="button" onclick="prefix('### ')">
+H3
+</button>
+
+<button type="button" onclick="prefix('> ')">
+❝
+</button>
+
+<button type="button" onclick="prefix('- ')">
+☷
+</button>
+
+<button type="button" onclick="addLink()">
+🔗
+</button>
+
+<button type="button" onclick="insertMedia()">
+🖼 / GIF
+</button>
+
+</div>
+
+
+<textarea
+ id="content"
+ placeholder="Напишите текст новости..."
+></textarea>
+
+
+<div class="media-box">
+
+<strong>Медиа</strong>
+
+<div class="file-row">
+
+<input
+ id="mediaUrl"
+ placeholder="Ссылка на фото или GIF"
+>
+
+<button
+ class="secondary"
+ type="button"
+ onclick="attachMedia()">
+Добавить
+</button>
+
+</div>
+
+<p class="hint">
+Пока используются прямые ссылки.
+</p>
+
+</div>
+
+</div>
+
+
+<div>
+
+<div class="preview-label">
+ПРЕДПРОСМОТР
+</div>
+
+<article class="preview-card">
+
+<div class="preview-image" id="previewImage">
+YL forum
+</div>
+
+<div class="preview-inner">
+
+<h2 id="previewTitle">
+Заголовок новости
+</h2>
+
+<div class="meta">
+Автор:
+<b id="previewAuthor">YLyura</b>
+· сейчас
+</div>
+
+<div class="body" id="previewBody">
+Здесь появится предпросмотр текста вашей новости.
+</div>
+
+</div>
+
+</article>
+
+</div>
+
+</div>
+
+
+<div class="editor-bottom">
+
+<span class="hint">
+Публиковать могут только YL-аккаунты.
+</span>
+
+<div class="actions">
+
+<button type="button" onclick="publish()">
+Опубликовать
+</button>
+
+<button
+ class="secondary"
+ type="button"
+ onclick="saveDraft()">
+Сохранить черновик
+</button>
+
+<button
+ class="secondary"
+ type="button"
+ onclick="clearEditor()">
+Очистить
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<div id="posts"></div>
+
+</main>
+
+
+<!-- AUTH -->
+
+<div class="modal" id="modal">
+
+<div class="modal-box">
+
+<div class="modal-top">
+
+<h2 id="modalTitle">
+Вход
+</h2>
+
+<button
+ type="button"
+ class="close"
+ onclick="closeAuth()">
+✕
+</button>
+
+</div>
+
+
+<p class="hint" id="modalHint"></p>
+
+
+<input
+ id="nickname"
+ autocomplete="username"
+ placeholder="Nickname"
+>
+
+
+<input
+ id="password"
+ autocomplete="current-password"
+ type="password"
+ placeholder="Пароль"
+>
+
+
+<div class="error" id="error"></div>
+
+
+<button
+ type="button"
+ id="authAction"
+ onclick="submitAuth()">
+Войти
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+let current = null;
+let mode = "login";
+
+
+function esc(s){
+
+ return String(s ?? "")
+ .replace(/[&<>"']/g,c=>({
+
+ "&":"&amp;",
+ "<":"&lt;",
+ ">":"&gt;",
+ '"':"&quot;",
+ "'":"&#039;"
+
+ }[c]));
+
+}
+
+
+function safeUrl(u){
+
+ try{
+
+  const x = new URL(u);
+
+  return ["http:","https:"].includes(x.protocol)
+   ? x.href
+   : "";
+
+ }catch{
+
+  return "";
+
+ }
+
+}
+
+
+function format(text){
+
+ let s = esc(text);
+
+ s = s
+ .replace(/^### (.*)$/gm,"<h4>$1</h4>")
+ .replace(/^## (.*)$/gm,"<h3>$1</h3>");
+
+ s = s
+ .replace(/^> (.*)$/gm,"<blockquote>$1</blockquote>")
+ .replace(/^- (.*)$/gm,"• $1");
+
+ s = s
+ .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+ .replace(/\*(.*?)\*/g,"<em>$1</em>");
+
+ s = s.replace(
+  /!\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g,
+  (m,a,u)=>{
+
+   const z=safeUrl(u);
+
+   return z
+    ? `<img src="${z}" alt="${esc(a)}" loading="lazy">`
+    : "";
+
+  }
+ );
+
+ s = s.replace(
+  /\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g,
+  (m,a,u)=>{
+
+   const z=safeUrl(u);
+
+   return z
+    ? `<a href="${z}" target="_blank" rel="noopener">${esc(a)}</a>`
+    : "";
+
+  }
+ );
+
+ return s.replace(/\n/g,"<br>");
+
+}
+
+
+/* API */
+
+async function api(path,body){
+
+ let response;
+
+ try{
+
+  response = await fetch(path,{
+
+   method:"POST",
+
+   headers:{
+    "Content-Type":"application/json",
+    "Accept":"application/json"
+   },
+
+   credentials:"same-origin",
+
+   body:JSON.stringify(body)
+
+  });
+
+ }catch{
+
+  throw new Error(
+   "Не удалось подключиться к серверу."
+  );
+
+ }
+
+
+ const text = await response.text();
+
+ let data={};
+
+ try{
+
+  data = text
+   ? JSON.parse(text)
+   : {};
+
+ }catch{
+
+  throw new Error(
+   "Сервер вернул неправильный ответ."
+  );
+
+ }
+
+
+ if(!response.ok){
+
+  throw new Error(
+   data.error ||
+   `Ошибка сервера (${response.status})`
+  );
+
+ }
+
+ return data;
+
+}
+
+
+/* AUTH */
+
+function openAuth(m){
+
+ mode=m;
+
+ document
+  .getElementById("modal")
+  .classList.add("show");
+
+ document.getElementById("modalTitle")
+  .textContent =
+  m==="login"
+  ? "Вход"
+  : "Регистрация";
+
+ document.getElementById("modalHint")
+  .textContent =
+  m==="login"
+  ? "Войдите в аккаунт YL forum."
+  : "Создайте аккаунт.";
+
+ document.getElementById("authAction")
+  .textContent =
+  m==="login"
+  ? "Войти"
+  : "Зарегистрироваться";
+
+ document.getElementById("nickname").value="";
+ document.getElementById("password").value="";
+ document.getElementById("error").textContent="";
+
+ setTimeout(
+  ()=>document.getElementById("nickname").focus(),
+  50
+ );
+
+}
+
+
+function closeAuth(){
+
+ document
+  .getElementById("modal")
+  .classList.remove("show");
+
+}
+
+
+async function submitAuth(){
+
+ const username =
+  document
+   .getElementById("nickname")
+   .value
+   .trim();
+
+ const password =
+  document
+   .getElementById("password")
+   .value;
+
+ const error =
+  document.getElementById("error");
+
+ const button =
+  document.getElementById("authAction");
+
+
+ error.textContent="";
+
+ if(!username || !password){
+
+  error.textContent="Заполните все поля.";
+  return;
+
+ }
+
+
+ button.disabled=true;
+
+ button.textContent =
+  mode==="login"
+  ? "Вход..."
+  : "Регистрация...";
+
+
+ try{
+
+  const endpoint =
+   mode==="login"
+   ? "/api/login"
+   : "/api/register";
+
+
+  const data =
+   await api(endpoint,{
+    username,
+    password
+   });
+
+
+  if(!data.user){
+
+   throw new Error(
+    "Сервер не вернул данные аккаунта."
+   );
+
+  }
+
+
+  current=data.user;
+
+
+  /*
+   * Сервер сам создаёт HttpOnly cookie.
+   * Пароль и токен в localStorage НЕ сохраняем.
+   */
+
+  closeAuth();
+
+  await render();
+
+
+ }catch(e){
+
+  console.error("AUTH ERROR:",e);
+
+  error.textContent =
+   e.message ||
+   "Ошибка сервера.";
+
+ }finally{
+
+  button.disabled=false;
+
+  button.textContent =
+   mode==="login"
+   ? "Войти"
+   : "Зарегистрироваться";
+
+ }
+
+}
+
+
+async function logout(){
+
+ try{
+
+  await fetch("/api/login",{
+   method:"DELETE",
+   credentials:"same-origin"
+  });
+
+ }catch{}
+
+ current=null;
+
+ await render();
+
+}
+
+
+/* POSTS */
+
+function isYL(){
+
+ return !!(
+  current &&
+  current.role==="yl"
+ );
+
+}
+
+
+async function loadCurrentUser(){
+
+ try{
+
+  const response =
+   await fetch("/api/login",{
+    credentials:"same-origin"
+   });
+
+  if(!response.ok){
+
+   current=null;
+   return;
+
+  }
+
+  const data=await response.json();
+
+  current=data.user || null;
+
+ }catch{
+
+  current=null;
+
+ }
+
+}
+
+
+async function loadPosts(){
+
+ try{
+
+  const response =
+   await fetch("/api/posts",{
+    headers:{
+     "Accept":"application/json"
+    }
+   });
+
+  if(!response.ok)
+   return [];
+
+  const data =
+   await response.json();
+
+  return Array.isArray(data.posts)
+   ? data.posts
+   : [];
+
+ }catch{
+
+  return [];
+
+ }
+
+}
+
+
+async function render(){
+
+ await loadCurrentUser();
+
+ document
+  .getElementById("editor")
+  .classList
+  .toggle("show",isYL());
+
+
+ document.getElementById("userLabel")
+  .textContent =
+  current
+  ? "@"+current.username
+  : "";
+
+
+ document.getElementById("loginBtn")
+  .style.display =
+  current
+  ? "none"
+  : "inline-block";
+
+
+ document.getElementById("registerBtn")
+  .style.display =
+  current
+  ? "none"
+  : "inline-block";
+
+
+ document.getElementById("logoutBtn")
+  .style.display =
+  current
+  ? "inline-block"
+  : "none";
+
+
+ if(isYL()){
+
+  document.getElementById("previewAuthor")
+   .textContent=current.username;
+
+ }
+
+
+ const box =
+  document.getElementById("posts");
+
+ const posts =
+  await loadPosts();
+
+
+ box.innerHTML="";
+
+
+ if(!posts.length){
+
+  box.innerHTML =
+   '<div class="news" style="text-align:center;color:#8b95a5">Пока новостей нет.</div>';
+
+  return;
+
+ }
+
+
+ posts.forEach(p=>{
+
+  const article =
+   document.createElement("article");
+
+  article.className="news";
+
+
+  const date =
+   p.created_at
+   ? new Date(p.created_at)
+      .toLocaleString("ru-RU")
+   : "";
+
+
+  article.innerHTML=`
+
+   <h2>${esc(p.title)}</h2>
+
+   <div class="meta">
+
+    Автор:
+    <b>${esc(p.username)}</b>
+
+    ${
+     p.role==="yl"
+     ? '<span class="yl-badge">YL</span>'
+     : ''
+    }
+
+    · ${esc(date)}
+
+   </div>
+
+   <div class="body">
+    ${format(p.content)}
+   </div>
+
+  `;
+
+
+  box.appendChild(article);
+
+ });
+
+}
+
+
+/* EDITOR */
+
+function selectionInsert(value){
+
+ const t =
+  document.getElementById("content");
+
+ const a=t.selectionStart;
+ const b=t.selectionEnd;
+
+ t.value =
+  t.value.slice(0,a)+
+  value+
+  t.value.slice(b);
+
+ t.focus();
+
+ t.selectionStart=
+  t.selectionEnd=
+  a+value.length;
+
+ updatePreview();
+
+}
+
+
+function wrap(a,b){
+
+ const t =
+  document.getElementById("content");
+
+ const x=t.selectionStart;
+ const y=t.selectionEnd;
+
+ const selected =
+  t.value.slice(x,y);
+
+ t.value =
+  t.value.slice(0,x)+
+  a+
+  selected+
+  b+
+  t.value.slice(y);
+
+ t.focus();
+
+ updatePreview();
+
+}
+
+
+function prefix(p){
+
+ const t =
+  document.getElementById("content");
+
+ const x=t.selectionStart;
+
+ const line =
+  t.value.lastIndexOf("\n",x-1)+1;
+
+ t.value =
+  t.value.slice(0,line)+
+  p+
+  t.value.slice(line);
+
+ t.focus();
+
+ updatePreview();
+
+}
+
+
+function addLink(){
+
+ const u =
+  safeUrl(
+   prompt("URL:") || ""
+  );
+
+ if(!u)return;
+
+ const text =
+  prompt(
+   "Текст ссылки:",
+   "Открыть"
+  ) || "Открыть";
+
+ selectionInsert(
+  `[${text}](${u})`
+ );
+
+}
+
+
+function insertMedia(){
+
+ document
+  .getElementById("mediaUrl")
+  .focus();
+
+}
+
+
+function attachMedia(){
+
+ const u =
+  safeUrl(
+   document
+    .getElementById("mediaUrl")
+    .value
+    .trim()
+  );
+
+ if(!u){
+
+  alert(
+   "Введите корректную ссылку."
+  );
+
+  return;
+
+ }
+
+ selectionInsert(
+  `![Медиа](${u})`
+ );
+
+ document
+  .getElementById("mediaUrl")
+  .value="";
+
+ updatePreview();
+
+}
+
+
+function updatePreview(){
+
+ const title =
+  document
+   .getElementById("title")
+   .value
+   .trim();
+
+ const content =
+  document
+   .getElementById("content")
+   .value
+   .trim();
+
+
+ document.getElementById("previewTitle")
+  .textContent =
+  title ||
+  "Заголовок новости";
+
+
+ document.getElementById("previewAuthor")
+  .textContent =
+  current?.username ||
+  "YLyura";
+
+
+ document.getElementById("previewBody")
+  .innerHTML =
+  content
+  ? format(content)
+  : "Здесь появится предпросмотр текста вашей новости.";
+
+
+ const match =
+  content.match(
+   /!\[.*?\]\((https?:\/\/[^\s)]+)\)/
+  );
+
+
+ document.getElementById("previewImage")
+  .innerHTML =
+  match &&
+  safeUrl(match[1])
+  ?
+  `<img src="${safeUrl(match[1])}" style="width:100%;height:100%;object-fit:cover">`
+  :
+  "YL forum";
+
+}
+
+
+async function publish(){
+
+ if(!isYL()){
+
+  alert(
+   "Только YL-аккаунты могут публиковать."
+  );
+
+  return;
+
+ }
+
+
+ const title =
+  document
+   .getElementById("title")
+   .value
+   .trim();
+
+ const content =
+  document
+   .getElementById("content")
+   .value
+   .trim();
+
+
+ if(!title || !content){
+
+  alert(
+   "Заполните заголовок и текст."
+  );
+
+  return;
+
+ }
+
+
+ try{
+
+  await api("/api/posts",{
+   title,
+   content
+  });
+
+  clearEditor();
+
+  await render();
+
+ }catch(e){
+
+  alert(
+   e.message ||
+   "Ошибка публикации."
+  );
+
+ }
+
+}
+
+
+function saveDraft(){
+
+ localStorage.setItem(
+  "yl_draft",
+  JSON.stringify({
+
+   title:
+    document
+     .getElementById("title")
+     .value,
+
+   content:
+    document
+     .getElementById("content")
+     .value
+
+  })
+ );
+
+
+ document
+  .getElementById("draftStatus")
+  .textContent=
+  "Черновик сохранён";
+
+}
+
+
+function clearEditor(){
+
+ document.getElementById("title")
+  .value="";
+
+ document.getElementById("content")
+  .value="";
+
+ document.getElementById("mediaUrl")
+  .value="";
+
+ localStorage.removeItem("yl_draft");
+
+ document
+  .getElementById("draftStatus")
+  .textContent=
+  "Готов к публикации";
+
+ updatePreview();
+
+}
+
+
+/* START */
+
+try{
+
+ const draft =
+  JSON.parse(
+   localStorage.getItem("yl_draft") ||
+   "null"
+  );
+
+ if(draft){
+
+  document.getElementById("title")
+   .value=draft.title || "";
+
+  document.getElementById("content")
+   .value=draft.content || "";
+
+ }
+
+}catch{}
+
+
+["title","content"].forEach(id=>{
+
+ document
+  .getElementById(id)
+  .addEventListener(
+   "input",
+   updatePreview
+  );
+
+});
+
+
+updatePreview();
+render();
+
+</script>
+
+</body>
+</html>
