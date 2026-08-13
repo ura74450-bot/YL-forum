@@ -13,24 +13,40 @@ export default async function handler(req, res) {
   try {
     const { username, password } = req.body || {};
 
+    // Проверяем данные
     if (!username || !password) {
       return res.status(400).json({
         error: "Username and password are required"
       });
     }
 
+    // Проверяем формат ника
     if (!/^[A-Za-z0-9_]{3,32}$/.test(username)) {
       return res.status(400).json({
         error: "Invalid username"
       });
     }
 
+    // Проверяем длину пароля
     if (password.length < 6) {
       return res.status(400).json({
         error: "Password must contain at least 6 characters"
       });
     }
 
+    // Резервируем специальные YL-ники
+    const lowerUsername = username.toLowerCase();
+
+    if (
+      lowerUsername === "ylyura" ||
+      lowerUsername === "yllev"
+    ) {
+      return res.status(403).json({
+        error: "This username is reserved for YL accounts"
+      });
+    }
+
+    // Проверяем, существует ли пользователь
     const existing = await sql`
       SELECT id
       FROM users
@@ -44,11 +60,21 @@ export default async function handler(req, res) {
       });
     }
 
+    // Хэшируем пароль
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Создаём пользователя
     const result = await sql`
-      INSERT INTO users (username, password_hash, role)
-      VALUES (${username}, ${passwordHash}, 'user')
+      INSERT INTO users (
+        username,
+        password_hash,
+        role
+      )
+      VALUES (
+        ${username},
+        ${passwordHash},
+        'user'
+      )
       RETURNING id, username, role, created_at
     `;
 
