@@ -1,356 +1,132 @@
-const { neon } = require("@neondatabase/serverless");
-const crypto = require("crypto");
+import { neon } from "@neondatabase/serverless";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const sql = neon(process.env.DATABASE_URL);
 
+function createToken(user) {
+  const secret = process.env.SESSION_SECRET;
 
-function getCookie(req,name){
+  if (!secret) {
+    throw new Error("SESSION_SECRET is not configured");
+  }
 
-  const cookies =
-    req.headers.cookie || "";
+  const payload = Buffer.from(
+    JSON.stringify({
+      id: user.id,
+      username: user.username,
+      role: user.role
+    })
+  ).toString("base64url");
 
-  for(
-    const part of cookies.split(";")
-  ){
+  const signature = crypto
+    .createHmac("sha256", secret)
+    .update(payload)
+    .digest("base64url");
 
-    const [key,...values] =
-      part.trim().split("=");
+  return `${payload}.${signature}`;
+}
 
-    if(key===name){
+function getCookie(req, name) {
+  const cookies = req.headers.cookie || "";
 
-      return decodeURIComponent(
-        values.join("=")
-      );
+  for (const part of cookies.split(";")) {
+    const [key, ...values] = part.trim().split("=");
 
+    if (key === name) {
+      return decodeURIComponent(values.join("="));
     }
-
   }
 
   return null;
-
 }
 
+export default async function handler(req, res) {
 
-function verifyToken(token){
+  if (req.method === "GET") {
+    const token = getCookie(req, "yl_session");
 
-  if(!token)
-    return null;
-
-  const secret =
-    process.env.SESSION_SECRET;
-
-  if(!secret)
-    return null;
-
-  const parts =
-    token.split(".");
-
-  if(parts.length!==2)
-    return null;
-
-  const [
-    payload,
-    signature
-  ] = parts;
-
-
-  const expected =
-    crypto
-      .createHmac(
-        "sha256",
-        secret
-      )
-      .update(payload)
-      .digest("base64url");
-
-
-  if(
-    signature.length !==
-    expected.length
-  ){
-
-    return null;
-
-  }
-
-
-  if(
-    !crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expected)
-    )
-  ){
-
-    return null;
-
-  }
-
-
-  try{
-
-    return JSON.parse(
-      Buffer.from(
-        payload,
-        "base64url"
-      ).toString("utf8")
-    );
-
-  }catch{
-
-    return null;
-
-  }
-
-}
-
-
-function getCurrentUser(req){
-
-  const token =
-    getCookie(
-      req,
-      "yl_session"
-    );
-
-  return verifyToken(token);
-
-}
-
-
-module.exports = async function handler(req,res){
-
-  /*
-   * GET
-   * Новости доступны всем.
-   */
-
-  if(req.method==="GET"){
-
-    try{
-
-      const posts =
-        await sql`
-          SELECT
-            posts.id,
-            posts.title,
-            posts.content,
-            posts.created_at,
-            users.username,
-            users.role
-          FROM posts
-          INNER JOIN users
-            ON users.id = posts.user_id
-          ORDER BY
-            posts.created_at DESC
-        `;
-
-
-      return res.status(200).json({
-        posts
+    if (!token) {
+      return res.status(401).json({
+        user: null
       });
-
-
-    }catch(error){
-
-      console.error(
-        "GET POSTS ERROR:",
-        error
-      );
-
-      return res.status(500).json({
-        error:
-          error.message ||
-          "Не удалось загрузить новости."
-      });
-
     }
 
+    return res.status(200).json({
+      user: null
+    });
   }
 
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "Method not allowed"
+    });
+  }
 
-  /*
-   * POST
-   * Создавать новости могут
-   * только YL-аккаунты.
-   */
+  try {
+    const { username, password } = req.body || {};
 
-  if(req.method==="POST"){
-
-    try{
-
-      const user =
-        getCurrentUser(req);
-
-
-      if(!user){
-
-        return res.status(401).json({
-          error:
-            "Сначала войдите в аккаунт."
-        });
-
-      }
-
-
-      if(user.role!=="yl"){
-
-        return res.status(403).json({
-          error:
-            "Публиковать новости могут только YL-аккаунты."
-        });
-
-      }
-
-
-      /*
-       * Дополнительная проверка,
-       * чтобы пользователь действительно
-       * существовал в базе.
-       */
-
-      const dbUser =
-        await sql`
-          SELECT
-            id,
-            username,
-            role
-          FROM users
-          WHERE id=${user.id}
-          LIMIT 1
-        `;
-
-
-      if(
-        !dbUser.length ||
-        dbUser[0].role!=="yl"
-      ){
-
-        return res.status(403).json({
-          error:
-            "У аккаунта нет прав YL."
-        });
-
-      }
-
-
-      const body =
-        req.body || {};
-
-
-      const title =
-        String(
-          body.title || ""
-        ).trim();
-
-
-      const content =
-        String(
-          body.content || ""
-        ).trim();
-
-
-      if(!title){
-
-        return res.status(400).json({
-          error:
-            "Введите заголовок."
-        });
-
-      }
-
-
-      if(!content){
-
-        return res.status(400).json({
-          error:
-            "Введите текст новости."
-        });
-
-      }
-
-
-      if(title.length>200){
-
-        return res.status(400).json({
-          error:
-            "Заголовок слишком длинный."
-        });
-
-      }
-
-
-      if(content.length>100000){
-
-        return res.status(400).json({
-          error:
-            "Новость слишком большая."
-        });
-
-      }
-
-
-      const result =
-        await sql`
-          INSERT INTO posts
-            (
-              title,
-              content,
-              user_id
-            )
-          VALUES
-            (
-              ${title},
-              ${content},
-              ${user.id}
-            )
-          RETURNING
-            id,
-            title,
-            content,
-            created_at
-        `;
-
-
-      return res.status(201).json({
-
-        success:true,
-
-        post:{
-          ...result[0],
-
-          username:
-            user.username,
-
-          role:
-            user.role
-
-        }
-
+    if (!username || !password) {
+      return res.status(400).json({
+        error: "Введите ник и пароль."
       });
-
-
-    }catch(error){
-
-      console.error(
-        "CREATE POST ERROR:",
-        error
-      );
-
-      return res.status(500).json({
-
-        error:
-          error.message ||
-          "Не удалось опубликовать новость."
-
-      });
-
     }
 
+    const result = await sql`
+      SELECT
+        id,
+        username,
+        password_hash,
+        role,
+        created_at
+      FROM users
+      WHERE LOWER(username) = LOWER(${username})
+      LIMIT 1
+    `;
+
+    if (!result.length) {
+      return res.status(401).json({
+        error: "Неверный ник или пароль."
+      });
+    }
+
+    const user = result[0];
+
+    const passwordCorrect = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!passwordCorrect) {
+      return res.status(401).json({
+        error: "Неверный ник или пароль."
+      });
+    }
+
+    const safeUser = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      created_at: user.created_at
+    };
+
+    const token = createToken(safeUser);
+
+    res.setHeader(
+      "Set-Cookie",
+      `yl_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
+    );
+
+    return res.status(200).json({
+      success: true,
+      user: safeUser
+    });
+
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+
+    return res.status(500).json({
+      error: error?.message || "Ошибка сервера."
+    });
   }
-
-
-  return res.status(405).json({
-    error:"Method not allowed"
-  });
-
-};
+}
