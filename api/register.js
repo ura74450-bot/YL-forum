@@ -1,34 +1,41 @@
-const { neon } = require("@neondatabase/serverless");
-const bcrypt = require("bcryptjs");
+import { neon } from "@neondatabase/serverless";
+import bcrypt from "bcryptjs";
 
 const sql = neon(process.env.DATABASE_URL);
 
-module.exports = async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Method not allowed"
-    });
+export default async function handler(request) {
+  if (request.method !== "POST") {
+    return Response.json(
+      { error: "Method not allowed" },
+      { status: 405 }
+    );
   }
 
   try {
-    const { username, password } = req.body || {};
+    const body = await request.json();
+
+    const username = body.username;
+    const password = body.password;
 
     if (!username || !password) {
-      return res.status(400).json({
-        error: "Username and password are required"
-      });
+      return Response.json(
+        { error: "Username and password are required" },
+        { status: 400 }
+      );
     }
 
     if (!/^[A-Za-z0-9_]{3,32}$/.test(username)) {
-      return res.status(400).json({
-        error: "Invalid username"
-      });
+      return Response.json(
+        { error: "Invalid username" },
+        { status: 400 }
+      );
     }
 
     if (password.length < 6) {
-      return res.status(400).json({
-        error: "Password must contain at least 6 characters"
-      });
+      return Response.json(
+        { error: "Password must contain at least 6 characters" },
+        { status: 400 }
+      );
     }
 
     const existing = await sql
@@ -39,9 +46,10 @@ module.exports = async function handler(req, res) {
     ;
 
     if (existing.length > 0) {
-      return res.status(409).json({
-        error: "Username already exists"
-      });
+      return Response.json(
+        { error: "Username already exists" },
+        { status: 409 }
+      );
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -54,16 +62,23 @@ module.exports = async function handler(req, res) {
       RETURNING id, username, role, created_at
     ;
 
-    return res.status(201).json({
-      success: true,
-      user: result[0]
-    });
+    return Response.json(
+      {
+        success: true,
+        user: result[0]
+      },
+      { status: 201 }
+    );
 
   } catch (error) {
     console.error("REGISTER ERROR:", error);
 
-    return res.status(500).json({
-      error: error.message || "Internal server error"
-    });
+    return Response.json(
+      {
+        error: "Internal server error",
+        details: error.message
+      },
+      { status: 500 }
+    );
   }
-};
+}
