@@ -1,132 +1,217 @@
 import { neon } from "@neondatabase/serverless";
-import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 const sql = neon(process.env.DATABASE_URL);
 
-function createToken(user) {
-  const secret = process.env.SESSION_SECRET;
+function getToken(req) {
+  const cookie = req.headers.cookie || "";
 
-  if (!secret) {
-    throw new Error("SESSION_SECRET is not configured");
-  }
+  const match = cookie.match(
+    /(?:^|;\s*)yl_session=([^;]+)/
+  );
 
-  const payload = Buffer.from(
-    JSON.stringify({
-      id: user.id,
-      username: user.username,
-      role: user.role
-    })
-  ).toString("base64url");
-
-  const signature = crypto
-    .createHmac("sha256", secret)
-    .update(payload)
-    .digest("base64url");
-
-  return `${payload}.${signature}`;
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
-function getCookie(req, name) {
-  const cookies = req.headers.cookie || "";
+function getCurrentUser(req) {
 
-  for (const part of cookies.split(";")) {
-    const [key, ...values] = part.trim().split("=");
+  const token = getToken(req);
 
-    if (key === name) {
-      return decodeURIComponent(values.join("="));
-    }
+  if (!token) {
+    return null;
   }
 
-  return null;
+  try {
+
+    const parts = token.split(".");
+
+    if (parts.length !== 2) {
+      return null;
+    }
+
+    const [payload, signature] = parts;
+
+    const secret = process.env.SESSION_SECRET;
+
+    if (!secret) {
+      console.error("SESSION_SECRET is missing");
+      return null;
+    }
+
+    const expected = crypto
+      .createHmac("sha256", secret)
+      .update(payload)
+      .digest("base64url");
+
+    if (
+      signature.length !== expected.length ||
+      !crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expected)
+      )
+    ) {
+      return null;
+    }
+
+    return JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8")
+    );
+
+  } catch (error) {
+
+    console.error("SESSION ERROR:", error);
+
+    return null;
+  }
 }
 
 export default async function handler(req, res) {
 
+  // =========================
+  // GET — получить новости
+  // =========================
+
   if (req.method === "GET") {
-    const token = getCookie(req, "yl_session");
 
-    if (!token) {
-      return res.status(401).json({
-        user: null
+    try {
+
+      const posts = await sql`
+        SELECT
+          posts.id,
+          posts.title,
+          posts.content,
+          posts.created_at,
+          users.username,
+          users.role
+        FROM posts
+        INNER JOIN users
+          ON users.id = posts.user_id
+        ORDER BY posts.created_at DESC
+      `;
+
+      return res.status(200).json({
+        posts
+      });
+
+    } catch (error) {
+
+      console.error("GET POSTS ERROR:", error);
+
+      return res.status(500).json({
+        error: error?.message || "Не удалось загрузить новости."
       });
     }
-
-    return res.status(200).json({
-      user: null
-    });
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Method not allowed"
-    });
+  // =========================
+  // POST — создать новость
+  // =========================
+
+  if (req.method === "POST") {
+
+    try {
+
+      const user = getCurrentUser(req);
+
+      if (!user) {
+        return res.status(401).json({
+          error: "Сессия не найдена. Войдите в аккаунт заново."
+        });
+      }
+
+      // Дополнительная проверка через Neon
+      const dbUser = await sql`
+        SELECT
+          id,
+          username,
+          role
+        FROM users
+        WHERE id = ${user.id}
+        LIMIT 1
+      `;
+
+      if (!dbUser.length) {
+        return res.status(401).json({
+          error: "Пользователь не найден."
+        });
+      }
+
+      if (dbUser[0].role !== "yl") {
+        return res.status(403).json({
+          error: "Публиковать новости могут только YL-аккаунты."
+        });
+      }
+
+      const title = String(
+        req.body?.title || ""
+      ).trim();
+
+      const content = String(
+        req.body?.content || ""
+      ).trim();
+
+      if (!title) {
+        return res.status(400).json({
+          error: "Введите заголовок новости."
+        });
+      }
+
+      if (!content) {
+        return res.status(400).json({
+          error: "Введите текст новости."
+        });
+      }
+
+      if (title.length > 200) {
+        return res.status(400).json({
+          error: "Заголовок слишком длинный."
+        });
+      }
+
+      if (content.length > 100000) {
+        return res.status(400).json({
+          error: "Новость слишком большая."
+        });
+      }
+
+      const result = await sql`
+        INSERT INTO posts (
+          title,
+          content,
+          user_id
+        )
+        VALUES (
+          ${title},
+          ${content},
+          ${dbUser[0].id}
+        )
+        RETURNING
+          id,
+          title,
+          content,
+          created_at
+      `;
+
+      return res.status(201).json({
+        success: true,
+        post: {
+          ...result[0],
+          username: dbUser[0].username,
+          role: dbUser[0].role
+        }
+      });
+
+    } catch (error) {
+
+      console.error("CREATE POST ERROR:", error);
+
+      return res.status(500).json({
+        error: error?.message || "Не удалось опубликовать новость."
+      });
+    }
   }
 
-  try {
-    const { username, password } = req.body || {};
-
-    if (!username || !password) {
-      return res.status(400).json({
-        error: "Введите ник и пароль."
-      });
-    }
-
-    const result = await sql`
-      SELECT
-        id,
-        username,
-        password_hash,
-        role,
-        created_at
-      FROM users
-      WHERE LOWER(username) = LOWER(${username})
-      LIMIT 1
-    `;
-
-    if (!result.length) {
-      return res.status(401).json({
-        error: "Неверный ник или пароль."
-      });
-    }
-
-    const user = result[0];
-
-    const passwordCorrect = await bcrypt.compare(
-      password,
-      user.password_hash
-    );
-
-    if (!passwordCorrect) {
-      return res.status(401).json({
-        error: "Неверный ник или пароль."
-      });
-    }
-
-    const safeUser = {
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      created_at: user.created_at
-    };
-
-    const token = createToken(safeUser);
-
-    res.setHeader(
-      "Set-Cookie",
-      `yl_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
-    );
-
-    return res.status(200).json({
-      success: true,
-      user: safeUser
-    });
-
-  } catch (error) {
-    console.error("LOGIN ERROR:", error);
-
-    return res.status(500).json({
-      error: error?.message || "Ошибка сервера."
-    });
-  }
+  return res.status(405).json({
+    error: "Method not allowed"
+  });
 }
