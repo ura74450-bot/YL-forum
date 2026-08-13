@@ -26,13 +26,13 @@ function createToken(user) {
     .update(payload)
     .digest("base64url");
 
-  return ${payload}.${signature};
+  return `${payload}.${signature}`;
 }
 
 function setCookie(res, token) {
   res.setHeader(
     "Set-Cookie",
-    yl_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800
+    `yl_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
   );
 }
 
@@ -103,12 +103,12 @@ module.exports = async function handler(req, res) {
      * Проверяем существование ника.
      */
 
-    const existing = await sql
+    const existing = await sql`
       SELECT id
       FROM users
       WHERE LOWER(username) = LOWER(${username})
       LIMIT 1
-    ;
+    `;
 
     if (existing.length > 0) {
 
@@ -135,7 +135,7 @@ module.exports = async function handler(req, res) {
      * Создаём пользователя.
      */
 
-    const result = await sql
+    const result = await sql`
       INSERT INTO users
         (username, password_hash, role)
       VALUES
@@ -145,7 +145,7 @@ module.exports = async function handler(req, res) {
         username,
         role,
         created_at
-    ;
+    `;
 
     const user = result[0];
 
