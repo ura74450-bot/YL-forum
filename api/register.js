@@ -1,9 +1,9 @@
-import { neon } from "@neondatabase/serverless";
-import bcrypt from "bcryptjs";
+const { neon } = require("@neondatabase/serverless");
+const bcrypt = require("bcryptjs");
 
 const sql = neon(process.env.DATABASE_URL);
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Method not allowed"
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     console.error("REGISTER ERROR:", error);
 
     return res.status(500).json({
-      error: "Internal server error"
+      error: error.message || "Internal server error"
     });
   }
-}
+};
