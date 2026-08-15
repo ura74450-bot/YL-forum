@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YL forum</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ font-family:Inter,Arial,sans-serif;
+ background:#f4f6f8;
+ color:#172033
+}
+
+button,input,textarea{font:inherit}
+
+button{
+ border:0;
+ border-radius:10px;
+ padding:11px 16px;
+ background:#1769e0;
+ color:white;
+ font-weight:700;
+ cursor:pointer
+}
+
+button:hover{filter:brightness(.95)}
+button:disabled{opacity:.6;cursor:not-allowed}
+
+.secondary{
+ background:#eef1f5;
+ color:#263247
+}
+
+header{
+ background:white;
+ border-bottom:1px solid #e4e8ee;
+ position:sticky;
+ top:0;
+ z-index:20
+}
+
+.nav{
+ max-width:1100px;
+ margin:auto;
+ padding:14px 20px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:15px
+}
+
+.logo{
+ display:flex;
+ align-items:center;
+ gap:7px;
+ font-weight:900;
+ font-size:26px;
+ letter-spacing:-1px
+}
+
+.y{color:#ed3030}
+.l{color:#2474e8}
+
+.forum{
+ color:#172033;
+ font-size:20px;
+ font-weight:800;
+ margin-left:2px
+}
+
+.nav-actions{
+ display:flex;
+ align-items:center;
+ gap:9px
+}
+
+.user{
+ font-size:14px;
+ color:#667085;
+ font-weight:700
+}
+
+main{
+ max-width:850px;
+ margin:0 auto;
+ padding:36px 20px 70px
+}
+
+.hero{
+ background:white;
+ border:1px solid #e5e9ef;
+ border-radius:18px;
+ padding:28px;
+ margin-bottom:22px
+}
+
+.hero h1{
+ margin:0 0 8px;
+ font-size:34px
+}
+
+.hero p{
+ margin:0;
+ color:#718096
+}
+
+.news{
+ background:white;
+ border:1px solid #e5e9ef;
+ border-radius:18px;
+ padding:24px;
+ margin:16px 0;
+ box-shadow:0 3px 12px rgba(20,35,60,.04)
+}
+
+.news h2{
+ margin:0 0 8px;
+ font-size:23px
+}
+
+.meta{
+ color:#8791a3;
+ font-size:13px;
+ margin-bottom:17px
+}
+
+.body{
+ line-height:1.7;
+ font-size:16px;
+ overflow-wrap:anywhere
+}
+
+.body img{
+ display:block;
+ max-width:100%;
+ height:auto;
+ border-radius:12px;
+ margin:15px 0
+}
+
+.body a{
+ color:#1769e0
+}
+
+.body blockquote{
+ margin:12px 0;
+ padding:10px 14px;
+ border-left:4px solid #1769e0;
+ background:#f4f7fb;
+ color:#596579
+}
+
+.yl-badge{
+ display:inline-block;
+ background:#edf5ff;
+ color:#1769e0;
+ border-radius:999px;
+ padding:4px 8px;
+ font-size:11px;
+ margin-left:6px
+}
+
+/* EDITOR */
+
+.editor{
+ display:none;
+ background:white;
+ border:1px solid #dfe5ec;
+ border-radius:18px;
+ padding:24px;
+ margin-bottom:22px
+}
+
+.editor.show{display:block}
+
+.editor h2{
+ margin:0 0 4px
+}
+
+.editor-head{
+ display:flex;
+ justify-content:space-between;
+ align-items:flex-start;
+ gap:15px;
+ margin-bottom:18px
+}
+
+.draft{
+ font-size:12px;
+ color:#23844d;
+ background:#eaf8f0;
+ border-radius:999px;
+ padding:6px 10px
+}
+
+.editor-grid{
+ display:grid;
+ grid-template-columns:1.1fr .9fr;
+ gap:20px
+}
+
+.toolbar{
+ display:flex;
+ flex-wrap:wrap;
+ gap:6px;
+ margin-bottom:7px;
+ padding:7px;
+ background:#f7f8fa;
+ border:1px solid #e1e6ed;
+ border-radius:11px
+}
+
+.toolbar button{
+ padding:8px 10px;
+ font-size:13px;
+ background:white;
+ color:#263247;
+ border:1px solid #dfe4eb
+}
+
+.toolbar button:hover{
+ background:#edf4ff;
+ color:#1769e0
+}
+
+input,textarea{
+ width:100%;
+ padding:13px 14px;
+ border:1px solid #d7dde6;
+ border-radius:10px;
+ background:white;
+ color:#172033;
+ outline:none;
+ margin:7px 0 12px
+}
+
+input:focus,textarea:focus{
+ border-color:#1769e0;
+ box-shadow:0 0 0 3px #1769e01a
+}
+
+textarea{
+ min-height:190px;
+ resize:vertical
+}
+
+.media-box{
+ padding:13px;
+ border:1px solid #e1e6ed;
+ background:#fafbfc;
+ border-radius:12px
+}
+
+.file-row{
+ display:flex;
+ gap:8px;
+ align-items:center;
+ flex-wrap:wrap;
+ margin:7px 0 5px
+}
+
+.file-row input{
+ margin:0;
+ flex:1;
+ min-width:180px
+}
+
+.hint{
+ font-size:13px;
+ color:#8993a3
+}
+
+.preview-label{
+ font-size:11px;
+ font-weight:800;
+ color:#8a94a5;
+ letter-spacing:.08em;
+ margin:5px 0 8px
+}
+
+.preview-card{
+ border:1px solid #e2e7ee;
+ border-radius:15px;
+ overflow:hidden;
+ background:white
+}
+
+.preview-image{
+ height:125px;
+ background:#eef3f8;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ color:#8b95a5;
+ font-weight:800
+}
+
+.preview-inner{
+ padding:15px
+}
+
+.preview-inner h2{
+ font-size:19px;
+ margin:0 0 7px
+}
+
+.editor-bottom{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:15px;
+ margin-top:16px
+}
+
+.actions{
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap
+}
+
+/* MODAL */
+
+.modal{
+ display:none;
+ position:fixed;
+ inset:0;
+ background:#0006;
+ z-index:50;
+ padding:18px;
+ align-items:center;
+ justify-content:center
+}
+
+.modal.show{display:flex}
+
+.modal-box{
+ width:min(430px,100%);
+ background:white;
+ border-radius:18px;
+ padding:24px;
+ box-shadow:0 20px 60px #0002
+}
+
+.modal-top{
+ display:flex;
+ justify-content:space-between;
+ align-items:center
+}
+
+.modal-top h2{margin:0}
+
+.close{
+ background:#eef1f5;
+ color:#263247;
+ padding:8px 11px
+}
+
+.error{
+ color:#d93030;
+ font-size:13px;
+ min-height:20px;
+ margin-bottom:5px
+}
+
+.success{
+ color:#23844d;
+ font-size:13px;
+ min-height:20px
+}
+
+@media(max-width:720px){
+
+ .editor-grid{
+  grid-template-columns:1fr
+ }
+
+ .editor-bottom{
+  align-items:flex-start;
+  flex-direction:column
+ }
+}
+
+@media(max-width:600px){
+
+ .nav{
+  padding:12px 14px
+ }
+
+ .forum{
+  font-size:17px
+ }
+
+ .logo{
+  font-size:22px
+ }
+
+ .nav-actions{
+  gap:6px
+ }
+
+ .user{
+  display:none
+ }
+
+ main{
+  padding:22px 12px 50px
+ }
+
+ .hero{
+  padding:21px 18px;
+  border-radius:15px
+ }
+
+ .hero h1{
+  font-size:28px
+ }
+
+ .news{
+  padding:18px;
+  border-radius:15px
+ }
+
+ .news h2{
+  font-size:20px
+ }
+
+ .body{
+  font-size:15px
+ }
+
+ .editor{
+  padding:18px;
+  border-radius:15px
+ }
+
+ .toolbar button{
+  font-size:12px;
+  padding:8px
+ }
+
+ button{
+  padding:10px 12px
+ }
+
+ .editor-head{
+  flex-direction:column
+ }
+}
+
+/* YL FORUM FEATURES */
+.post-tools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px;padding-top:12px;border-top:1px solid #edf0f4}
+.post-tools-left,.post-tools-right{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.post-tools button{padding:8px 11px;font-size:12px}
+.post-action-danger{background:#fff0f0!important;color:#c62828!important;border:1px solid #ffd0d0!important}
+.post-action-edit{background:#eef5ff!important;color:#1769e0!important;border:1px solid #d7e7ff!important}
+.post-action-pin{background:#fff7df!important;color:#8a6500!important;border:1px solid #f2df9b!important}
+.post-pinned{border-color:#f0d77a;box-shadow:0 4px 18px rgba(160,120,20,.10)}
+.pinned-label{display:inline-flex;align-items:center;gap:5px;background:#fff7df;color:#8a6500;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;margin-bottom:9px}
+.post-collapsed .body{max-height:280px;overflow:hidden;position:relative}
+.post-collapsed .body:after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff);pointer-events:none}
+.collapse-btn{background:#f7f8fa!important;color:#263247!important;border:1px solid #dfe4eb!important}
+.search-box{display:flex;gap:8px;align-items:center;margin:0 0 18px}
+.search-box input{margin:0;flex:1}
+.search-count{font-size:12px;color:#8993a3;white-space:nowrap}
+.media-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.media-actions button{padding:8px 10px;font-size:12px}
+.editing-badge{display:none;font-size:12px;color:#1769e0;background:#edf5ff;border-radius:999px;padding:6px 10px}
+.editing-badge.show{display:inline-block}
+.edit-cancel{display:none}
+.edit-cancel.show{display:inline-block}
+.media-modal .modal-box{width:min(500px,100%)}
+.media-modal textarea{min-height:90px}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="nav">
+
+<div class="logo">
+<span class="y">Y</span>
+<span class="l">L</span>
+<span class="forum">forum</span>
+</div>
+
+<div class="nav-actions">
+
+<span class="user" id="userLabel"></span>
+
+<button id="loginBtn" type="button" onclick="openAuth('login')">
+Войти
+</button>
+
+<button class="secondary" id="registerBtn" type="button" onclick="openAuth('register')">
+Register
+</button>
+
+<button
+ class="secondary"
+ id="logoutBtn"
+ type="button"
+ style="display:none"
+ onclick="logout()">
+Выйти
+</button>
+
+</div>
+</div>
+</header>
+
+
+<main>
+
+<section class="hero">
+<h1>Новости YL</h1>
+<p>Новости, обновления и публикации проекта YL.</p>
+</section>
+
+
+<section class="editor" id="editor">
+
+<div class="editor-head">
+
+<div>
+<h2>Редактор новости</h2>
+<p class="hint">
+Создайте публикацию для YL forum
+</p>
+</div>
+
+<span class="draft" id="draftStatus">
+Готов к публикации
+</span>
+
+</div>
+
+
+<input
+ id="title"
+ maxlength="200"
+ placeholder="Заголовок новости"
+>
+
+
+<div class="editor-grid">
+
+<div>
+
+<div class="toolbar">
+
+<button type="button" onclick="wrap('**','**')">
+<b>B</b>
+</button>
+
+<button type="button" onclick="wrap('*','*')">
+<i>I</i>
+</button>
+
+<button type="button" onclick="prefix('## ')">
+H2
+</button>
+
+<button type="button" onclick="prefix('### ')">
+H3
+</button>
+
+<button type="button" onclick="prefix('> ')">
+❝
+</button>
+
+<button type="button" onclick="prefix('- ')">
+☷
+</button>
+
+<button type="button" onclick="addLink()">
+🔗
+</button>
+
+<button type="button" onclick="insertMedia()">
+🖼 / GIF
+</button>
+
+</div>
+
+
+<textarea
+ id="content"
+ placeholder="Напишите текст новости..."
+></textarea>
+
+
+<div class="media-box">
+
+<strong>Медиа</strong>
+
+<div class="file-row">
+
+<input
+ id="mediaUrl"
+ placeholder="Ссылка на фото или GIF"
+>
+
+<button
+ class="secondary"
+ type="button"
+ onclick="attachMedia()">
+Добавить
+</button>
+
+</div>
+
+<p class="hint">
+Пока используются прямые ссылки.
+</p>
+
+</div>
+
+</div>
+
+
+<div>
+
+<div class="preview-label">
+ПРЕДПРОСМОТР
+</div>
+
+<article class="preview-card">
+
+<div class="preview-image" id="previewImage">
+YL forum
+</div>
+
+<div class="preview-inner">
+
+<h2 id="previewTitle">
+Заголовок новости
+</h2>
+
+<div class="meta">
+Автор:
+<b id="previewAuthor">YLyura</b>
+· сейчас
+</div>
+
+<div class="body" id="previewBody">
+Здесь появится предпросмотр текста вашей новости.
+</div>
+
+</div>
+
+</article>
+
+</div>
+
+</div>
+
+
+<div class="editor-bottom">
+
+<span class="hint">
+Публиковать могут только YL-аккаунты.
+</span>
+
+<div class="actions">
+
+<button type="button" onclick="publish()">
+Опубликовать
+</button>
+
+<button
+ class="secondary"
+ type="button"
+ onclick="saveDraft()">
+Сохранить черновик
+</button>
+
+<button
+ class="secondary"
+ type="button"
+ onclick="clearEditor()">
+Очистить
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<div class="search-box">
+  <input id="postSearch" type="search" placeholder="Поиск по новостям..." aria-label="Поиск по новостям">
+  <span class="search-count" id="searchCount"></span>
+</div>
+<div id="posts"></div>
+
+</main>
+
+
+
+<!-- MEDIA -->
+<div class="modal media-modal" id="mediaModal">
+ <div class="modal-box">
+  <div class="modal-top">
+   <h2 id="mediaModalTitle">Добавить медиа</h2>
+   <button type="button" class="close" onclick="closeMediaModal()">✕</button>
+  </div>
+  <p class="hint">Вставьте прямую ссылку на изображение или GIF.</p>
+  <input id="mediaModalUrl" placeholder="https://example.com/image.gif">
+  <textarea id="mediaModalAlt" placeholder="Описание (необязательно)"></textarea>
+  <div class="actions">
+   <button type="button" onclick="confirmMedia()">Вставить</button>
+   <button type="button" class="secondary" onclick="closeMediaModal()">Отмена</button>
+  </div>
+ </div>
+</div>
+
+<!-- AUTH -->
+
+<div class="modal" id="modal">
+
+<div class="modal-box">
+
+<div class="modal-top">
+
+<h2 id="modalTitle">
+Вход
+</h2>
+
+<button
+ type="button"
+ class="close"
+ onclick="closeAuth()">
+✕
+</button>
+
+</div>
+
+
+<p class="hint" id="modalHint"></p>
+
+
+<input
+ id="nickname"
+ autocomplete="username"
+ placeholder="Nickname"
+>
+
+
+<input
+ id="password"
+ autocomplete="current-password"
+ type="password"
+ placeholder="Пароль"
+>
+
+
+<div class="error" id="error"></div>
+
+
+<button
+ type="button"
+ id="authAction"
+ onclick="submitAuth()">
+Войти
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+let current = null;
+let mode = "login";
+
+
+function esc(s){
+
+ return String(s ?? "")
+ .replace(/[&<>"']/g,c=>({
+
+ "&":"&amp;",
+ "<":"&lt;",
+ ">":"&gt;",
+ '"':"&quot;",
+ "'":"&#039;"
+
+ }[c]));
+
+}
+
+
+function safeUrl(u){
+
+ try{
+
+  const x = new URL(u);
+
+  return ["http:","https:"].includes(x.protocol)
+   ? x.href
+   : "";
+
+ }catch{
+
+  return "";
+
+ }
+
+}
+
+
+function format(text){
+
+ let s = esc(text);
+
+ s = s
+ .replace(/^### (.*)$/gm,"<h4>$1</h4>")
+ .replace(/^## (.*)$/gm,"<h3>$1</h3>");
+
+ s = s
+ .replace(/^> (.*)$/gm,"<blockquote>$1</blockquote>")
+ .replace(/^- (.*)$/gm,"• $1");
+
+ s = s
+ .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+ .replace(/\*(.*?)\*/g,"<em>$1</em>");
+
+ s = s.replace(
+  /!\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g,
+  (m,a,u)=>{
+
+   const z=safeUrl(u);
+
+   return z
+    ? `<img src="${z}" alt="${esc(a)}" loading="lazy">`
+    : "";
+
+  }
+ );
+
+ s = s.replace(
+  /\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g,
+  (m,a,u)=>{
+
+   const z=safeUrl(u);
+
+   return z
+    ? `<a href="${z}" target="_blank" rel="noopener">${esc(a)}</a>`
+    : "";
+
+  }
+ );
+
+ return s.replace(/\n/g,"<br>");
+
+}
+
+
+/* API */
+
+async function api(path,body){
+
+ let response;
+
+ try{
+
+  response = await fetch(path,{
+
+   method:"POST",
+
+   headers:{
+    "Content-Type":"application/json",
+    "Accept":"application/json"
+   },
+
+   credentials:"same-origin",
+
+   body:JSON.stringify(body)
+
+  });
+
+ }catch{
+
+  throw new Error(
+   "Не удалось подключиться к серверу."
+  );
+
+ }
+
+
+ const text = await response.text();
+
+ let data={};
+
+ try{
+
+  data = text
+   ? JSON.parse(text)
+   : {};
+
+ }catch{
+
+  throw new Error(
+   "Сервер вернул неправильный ответ."
+  );
+
+ }
+
+
+ if(!response.ok){
+
+  throw new Error(
+   data.error ||
+   `Ошибка сервера (${response.status})`
+  );
+
+ }
+
+ return data;
+
+}
+
+
+/* AUTH */
+
+function openAuth(m){
+
+ mode=m;
+
+ document
+  .getElementById("modal")
+  .classList.add("show");
+
+ document.getElementById("modalTitle")
+  .textContent =
+  m==="login"
+  ? "Вход"
+  : "Регистрация";
+
+ document.getElementById("modalHint")
+  .textContent =
+  m==="login"
+  ? "Войдите в аккаунт YL forum."
+  : "Создайте аккаунт.";
+
+ document.getElementById("authAction")
+  .textContent =
+  m==="login"
+  ? "Войти"
+  : "Зарегистрироваться";
+
+ document.getElementById("nickname").value="";
+ document.getElementById("password").value="";
+ document.getElementById("error").textContent="";
+
+ setTimeout(
+  ()=>document.getElementById("nickname").focus(),
+  50
+ );
+
+}
+
+
+function closeAuth(){
+
+ document
+  .getElementById("modal")
+  .classList.remove("show");
+
+}
+
+
+async function submitAuth(){
+
+ const username =
+  document
+   .getElementById("nickname")
+   .value
+   .trim();
+
+ const password =
+  document
+   .getElementById("password")
+   .value;
+
+ const error =
+  document.getElementById("error");
+
+ const button =
+  document.getElementById("authAction");
+
+
+ error.textContent="";
+
+ if(!username || !password){
+
+  error.textContent="Заполните все поля.";
+  return;
+
+ }
+
+
+ button.disabled=true;
+
+ button.textContent =
+  mode==="login"
+  ? "Вход..."
+  : "Регистрация...";
+
+
+ try{
+
+  const endpoint =
+   mode==="login"
+   ? "/api/login"
+   : "/api/register";
+
+
+  const data =
+   await api(endpoint,{
+    username,
+    password
+   });
+
+
+  if(!data.user){
+
+   throw new Error(
+    "Сервер не вернул данные аккаунта."
+   );
+
+  }
+
+
+  current=data.user;
+
+
+  /*
+   * Сервер сам создаёт HttpOnly cookie.
+   * Пароль и токен в localStorage НЕ сохраняем.
+   */
+
+  closeAuth();
+
+  await render();
+
+
+ }catch(e){
+
+  console.error("AUTH ERROR:",e);
+
+  error.textContent =
+   e.message ||
+   "Ошибка сервера.";
+
+ }finally{
+
+  button.disabled=false;
+
+  button.textContent =
+   mode==="login"
+   ? "Войти"
+   : "Зарегистрироваться";
+
+ }
+
+}
+
+
+async function logout(){
+
+ try{
+
+  await fetch("/api/login",{
+   method:"DELETE",
+   credentials:"same-origin"
+  });
+
+ }catch{}
+
+ current=null;
+
+ await render();
+
+}
+
+
+/* POSTS */
+
+let postSearchText = "";
+let editingPostId = null;
+let mediaInsertMode = "image";
+
+function isYL(){
+ return !!(current && current.role==="yl");
+}
+
+async function loadCurrentUser(){
+ try{
+  const response=await fetch("/api/login",{credentials:"same-origin"});
+  if(!response.ok){current=null;return;}
+  const data=await response.json();
+  current=data.user || null;
+ }catch{current=null;}
+}
+
+async function loadPosts(){
+ try{
+  const response=await fetch("/api/posts",{
+   headers:{"Accept":"application/json"},
+   credentials:"same-origin"
+  });
+  if(!response.ok)return [];
+  const data=await response.json();
+  return Array.isArray(data.posts)?data.posts:[];
+ }catch{return [];}
+}
+
+function postMatchesSearch(post){
+ const q=postSearchText.trim().toLowerCase();
+ if(!q)return true;
+ return String(post.title||"").toLowerCase().includes(q) ||
+        String(post.content||"").toLowerCase().includes(q) ||
+        String(post.username||"").toLowerCase().includes(q);
+}
+
+function getPostId(post){
+ return post.id ?? post.post_id ?? "";
+}
+
+function postIsPinned(post){
+ return post.pinned === true || post.is_pinned === true;
+}
+
+function postLooksLong(post){
+ return String(post.content||"").length > 900;
+}
+
+async function render(){
+ await loadCurrentUser();
+
+ document.getElementById("editor").classList.toggle("show",isYL());
+
+ document.getElementById("userLabel").textContent=current?"@"+current.username:"";
+ document.getElementById("loginBtn").style.display=current?"none":"inline-block";
+ document.getElementById("registerBtn").style.display=current?"none":"inline-block";
+ document.getElementById("logoutBtn").style.display=current?"inline-block":"none";
+
+ if(isYL())document.getElementById("previewAuthor").textContent=current.username;
+
+ const box=document.getElementById("posts");
+ let posts=await loadPosts();
+
+ posts=posts.slice().sort((a,b)=>{
+  const ap=postIsPinned(a)?1:0;
+  const bp=postIsPinned(b)?1:0;
+  if(ap!==bp)return bp-ap;
+  return new Date(b.created_at||0)-new Date(a.created_at||0);
+ });
+
+ const filtered=posts.filter(postMatchesSearch);
+ box.innerHTML="";
+
+ const count=document.getElementById("searchCount");
+ if(count)count.textContent=postSearchText.trim()?`${filtered.length} из ${posts.length}`:`${posts.length} новостей`;
+
+ if(!posts.length){
+  box.innerHTML='<div class="news" style="text-align:center;color:#8b95a5">Пока новостей нет.</div>';
+  return;
+ }
+
+ if(!filtered.length){
+  box.innerHTML='<div class="news" style="text-align:center;color:#8b95a5">Ничего не найдено.</div>';
+  return;
+ }
+
+ filtered.forEach(p=>{
+  const article=document.createElement("article");
+  const pinned=postIsPinned(p);
+  const longPost=postLooksLong(p);
+  const postId=getPostId(p);
+
+  article.className="news"+(pinned?" post-pinned":"")+(longPost?" post-collapsed":"");
+
+  const date=p.created_at?new Date(p.created_at).toLocaleString("ru-RU"):"";
+
+  article.innerHTML=`
+   ${pinned?'<div class="pinned-label">📌 Закреплено</div>':''}
+   <h2>${esc(p.title)}</h2>
+   <div class="meta">
+    Автор: <b>${esc(p.username)}</b>
+    ${p.role==="yl"?'<span class="yl-badge">YL</span>':''}
+    · ${esc(date)}
+   </div>
+   <div class="body">${format(p.content)}</div>
+   <div class="post-tools">
+    <div class="post-tools-left">
+     ${longPost?'<button type="button" class="collapse-btn" data-action="toggle-collapse">Развернуть</button>':''}
+    </div>
+    <div class="post-tools-right">
+     ${isYL()?`
+      <button type="button" class="post-action-pin" data-action="pin">${pinned?"Открепить":"📌 Закрепить"}</button>
+      <button type="button" class="post-action-edit" data-action="edit">✏️ Изменить</button>
+      <button type="button" class="post-action-danger" data-action="delete">🗑 Удалить</button>
+     `:''}
+    </div>
+   </div>
+  `;
+
+  article.querySelectorAll("button[data-action]").forEach(btn=>{
+   btn.addEventListener("click",async()=>{
+    const action=btn.dataset.action;
+
+    if(action==="toggle-collapse"){
+     const collapsed=article.classList.toggle("post-collapsed");
+     btn.textContent=collapsed?"Развернуть":"Свернуть";
+     return;
+    }
+
+    if(!postId){alert("У новости нет ID.");return;}
+
+    if(action==="delete"){await deletePost(postId);return;}
+    if(action==="edit"){startEditPost(p);return;}
+    if(action==="pin"){await togglePinPost(postId,!pinned);return;}
+   });
+  });
+
+  box.appendChild(article);
+ });
+}
+
+async function postApi(path,method,body){
+ let response;
+ try{
+  response=await fetch(path,{
+   method,
+   headers:{"Content-Type":"application/json","Accept":"application/json"},
+   credentials:"same-origin",
+   body:body===undefined?undefined:JSON.stringify(body)
+  });
+ }catch{
+  throw new Error("Не удалось подключиться к серверу.");
+ }
+
+ const text=await response.text();
+ let data={};
+ try{data=text?JSON.parse(text):{};}
+ catch{throw new Error(`Сервер вернул неправильный ответ (${response.status}).`);}
+
+ if(!response.ok){
+  const message=typeof data.error==="string"
+   ?data.error
+   :(data.error?.message||`Ошибка сервера (${response.status})`);
+  throw new Error(message);
+ }
+
+ return data;
+}
+
+async function deletePost(id){
+ if(!isYL())return;
+ if(!confirm("Удалить эту новость? Это действие нельзя отменить."))return;
+
+ try{
+  await postApi(`/api/posts?id=${encodeURIComponent(id)}`,"DELETE");
+  await render();
+ }catch(e){
+  console.error("DELETE POST ERROR:",e);
+  alert(e.message||"Не удалось удалить новость.");
+ }
+}
+
+async function togglePinPost(id,pinned){
+ if(!isYL())return;
+
+ try{
+  await postApi(`/api/posts?id=${encodeURIComponent(id)}`,"PATCH",{pinned});
+  await render();
+ }catch(e){
+  console.error("PIN POST ERROR:",e);
+  alert(e.message||"Не удалось изменить закрепление.");
+ }
+}
+
+function startEditPost(post){
+ if(!isYL())return;
+
+ editingPostId=getPostId(post);
+ document.getElementById("title").value=post.title||"";
+ document.getElementById("content").value=post.content||"";
+ document.getElementById("draftStatus").textContent="Редактирование";
+ document.getElementById("editingBadge").classList.add("show");
+ document.getElementById("cancelEditBtn").classList.add("show");
+ document.getElementById("publishBtn").textContent="Сохранить изменения";
+ updatePreview();
+
+ document.getElementById("editor").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function cancelEdit(){
+ editingPostId=null;
+ document.getElementById("title").value="";
+ document.getElementById("content").value="";
+ document.getElementById("mediaUrl").value="";
+ document.getElementById("draftStatus").textContent="Готов к публикации";
+ document.getElementById("editingBadge").classList.remove("show");
+ document.getElementById("cancelEditBtn").classList.remove("show");
+ document.getElementById("publishBtn").textContent="Опубликовать";
+ updatePreview();
+}
+
+function openMediaModal(mode){
+ mediaInsertMode=mode;
+ document.getElementById("mediaModalTitle").textContent=mode==="gif"?"Добавить GIF":"Добавить картинку";
+ document.getElementById("mediaModalUrl").value="";
+ document.getElementById("mediaModalAlt").value="";
+ document.getElementById("mediaModal").classList.add("show");
+ setTimeout(()=>document.getElementById("mediaModalUrl").focus(),50);
+}
+
+function closeMediaModal(){
+ document.getElementById("mediaModal").classList.remove("show");
+}
+
+function insertImageMedia(){openMediaModal("image")}
+function insertGifMedia(){openMediaModal("gif")}
+
+function confirmMedia(){
+ const url=safeUrl(document.getElementById("mediaModalUrl").value.trim());
+ const alt=document.getElementById("mediaModalAlt").value.trim()||"Медиа";
+
+ if(!url){alert("Введите корректную ссылку.");return;}
+
+ selectionInsert(`![${alt}](${url})`);
+ closeMediaModal();
+}
+
+/* EDITOR */
+
+function selectionInsert(value){
+
+ const t =
+  document.getElementById("content");
+
+ const a=t.selectionStart;
+ const b=t.selectionEnd;
+
+ t.value =
+  t.value.slice(0,a)+
+  value+
+  t.value.slice(b);
+
+ t.focus();
+
+ t.selectionStart=
+  t.selectionEnd=
+  a+value.length;
+
+ updatePreview();
+
+}
+
+
+function wrap(a,b){
+
+ const t =
+  document.getElementById("content");
+
+ const x=t.selectionStart;
+ const y=t.selectionEnd;
+
+ const selected =
+  t.value.slice(x,y);
+
+ t.value =
+  t.value.slice(0,x)+
+  a+
+  selected+
+  b+
+  t.value.slice(y);
+
+ t.focus();
+
+ updatePreview();
+
+}
+
+
+function prefix(p){
+
+ const t =
+  document.getElementById("content");
+
+ const x=t.selectionStart;
+
+ const line =
+  t.value.lastIndexOf("\n",x-1)+1;
+
+ t.value =
+  t.value.slice(0,line)+
+  p+
+  t.value.slice(line);
+
+ t.focus();
+
+ updatePreview();
+
+}
+
+
+function addLink(){
+
+ const u =
+  safeUrl(
+   prompt("URL:") || ""
+  );
+
+ if(!u)return;
+
+ const text =
+  prompt(
+   "Текст ссылки:",
+   "Открыть"
+  ) || "Открыть";
+
+ selectionInsert(
+  `[${text}](${u})`
+ );
+
+}
+
+
+function insertMedia(){
+ openMediaModal("image");
+}
+
+function attachMedia(){
+ const u=safeUrl(document.getElementById("mediaUrl").value.trim());
+
+ if(!u){
+  alert("Введите корректную ссылку.");
+  return;
+ }
+
+ selectionInsert(`![Медиа](${u})`);
+ document.getElementById("mediaUrl").value="";
+ updatePreview();
+}
+
+
+function updatePreview(){
+
+ const title =
+  document
+   .getElementById("title")
+   .value
+   .trim();
+
+ const content =
+  document
+   .getElementById("content")
+   .value
+   .trim();
+
+
+ document.getElementById("previewTitle")
+  .textContent =
+  title ||
+  "Заголовок новости";
+
+
+ document.getElementById("previewAuthor")
+  .textContent =
+  current?.username ||
+  "YLyura";
+
+
+ document.getElementById("previewBody")
+  .innerHTML =
+  content
+  ? format(content)
+  : "Здесь появится предпросмотр текста вашей новости.";
+
+
+ const match =
+  content.match(
+   /!\[.*?\]\((https?:\/\/[^\s)]+)\)/
+  );
+
+
+ document.getElementById("previewImage")
+  .innerHTML =
+  match &&
+  safeUrl(match[1])
+  ?
+  `<img src="${safeUrl(match[1])}" style="width:100%;height:100%;object-fit:cover">`
+  :
+  "YL forum";
+
+}
+
+
+async function publish(){
+ if(!isYL()){
+  alert("Только YL-аккаунты могут публиковать.");
+  return;
+ }
+
+ const title=document.getElementById("title").value.trim();
+ const content=document.getElementById("content").value.trim();
+
+ if(!title||!content){
+  alert("Заполните заголовок и текст.");
+  return;
+ }
+
+ try{
+  if(editingPostId){
+   await postApi(
+    `/api/posts?id=${encodeURIComponent(editingPostId)}`,
+    "PATCH",
+    {title,content}
+   );
+   cancelEdit();
+  }else{
+   await api("/api/posts",{title,content});
+   clearEditor();
+  }
+  await render();
+ }catch(e){
+  console.error("PUBLISH/EDIT POST ERROR:",e);
+  alert(e.message||"Ошибка публикации.");
+ }
+}
+
+
+function saveDraft(){
+
+ localStorage.setItem(
+  "yl_draft",
+  JSON.stringify({
+
+   title:
+    document
+     .getElementById("title")
+     .value,
+
+   content:
+    document
+     .getElementById("content")
+     .value
+
+  })
+ );
+
+
+ document
+  .getElementById("draftStatus")
+  .textContent=
+  "Черновик сохранён";
+
+}
+
+
+function clearEditor(){
+
+ document.getElementById("title")
+  .value="";
+
+ document.getElementById("content")
+  .value="";
+
+ document.getElementById("mediaUrl")
+  .value="";
+
+ localStorage.removeItem("yl_draft");
+
+ document
+  .getElementById("draftStatus")
+  .textContent=
+  "Готов к публикации";
+
+ updatePreview();
+
+}
+
+
+
+const postSearchInput=document.getElementById("postSearch");
+
+if(postSearchInput){
+ postSearchInput.addEventListener("input",()=>{
+  postSearchText=postSearchInput.value||"";
+  render();
+ });
+}
+
+/* START */
+
+try{
+
+ const draft =
+  JSON.parse(
+   localStorage.getItem("yl_draft") ||
+   "null"
+  );
+
+ if(draft){
+
+  document.getElementById("title")
+   .value=draft.title || "";
+
+  document.getElementById("content")
+   .value=draft.content || "";
+
+ }
+
+}catch{}
+
+
+["title","content"].forEach(id=>{
+
+ document
+  .getElementById(id)
+  .addEventListener(
+   "input",
+   updatePreview
+  );
+
+});
+
+
+updatePreview();
+render();
+
+</script>
+
+</body>
+</html>
