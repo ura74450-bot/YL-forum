@@ -14,7 +14,6 @@ function getToken(req) {
 }
 
 function getCurrentUser(req) {
-
   const token = getToken(req);
 
   if (!token) {
@@ -22,7 +21,6 @@ function getCurrentUser(req) {
   }
 
   try {
-
     const parts = token.split(".");
 
     if (parts.length !== 2) {
@@ -43,8 +41,11 @@ function getCurrentUser(req) {
       .update(payload)
       .digest("base64url");
 
+    if (signature.length !== expected.length) {
+      return null;
+    }
+
     if (
-      signature.length !== expected.length ||
       !crypto.timingSafeEqual(
         Buffer.from(signature),
         Buffer.from(expected)
@@ -58,9 +59,7 @@ function getCurrentUser(req) {
     );
 
   } catch (error) {
-
     console.error("SESSION ERROR:", error);
-
     return null;
   }
 }
@@ -72,7 +71,6 @@ export default async function handler(req, res) {
   // =========================
 
   if (req.method === "GET") {
-
     try {
 
       const posts = await sql`
@@ -85,7 +83,7 @@ export default async function handler(req, res) {
           users.role
         FROM posts
         INNER JOIN users
-          ON users.id = posts.user_id
+          ON users.id = posts.author_id
         ORDER BY posts.created_at DESC
       `;
 
@@ -98,7 +96,9 @@ export default async function handler(req, res) {
       console.error("GET POSTS ERROR:", error);
 
       return res.status(500).json({
-        error: error?.message || "Не удалось загрузить новости."
+        error:
+          error?.message ||
+          "Не удалось загрузить новости."
       });
     }
   }
@@ -108,18 +108,18 @@ export default async function handler(req, res) {
   // =========================
 
   if (req.method === "POST") {
-
     try {
 
       const user = getCurrentUser(req);
 
       if (!user) {
         return res.status(401).json({
-          error: "Сессия не найдена. Войдите в аккаунт заново."
+          error:
+            "Сессия не найдена. Войдите в аккаунт заново."
         });
       }
 
-      // Дополнительная проверка через Neon
+      // Проверяем пользователя в базе
       const dbUser = await sql`
         SELECT
           id,
@@ -136,9 +136,11 @@ export default async function handler(req, res) {
         });
       }
 
+      // Проверяем права YL
       if (dbUser[0].role !== "yl") {
         return res.status(403).json({
-          error: "Публиковать новости могут только YL-аккаунты."
+          error:
+            "Публиковать новости могут только YL-аккаунты."
         });
       }
 
@@ -152,48 +154,60 @@ export default async function handler(req, res) {
 
       if (!title) {
         return res.status(400).json({
-          error: "Введите заголовок новости."
+          error:
+            "Введите заголовок новости."
         });
       }
 
       if (!content) {
         return res.status(400).json({
-          error: "Введите текст новости."
+          error:
+            "Введите текст новости."
         });
       }
 
       if (title.length > 200) {
         return res.status(400).json({
-          error: "Заголовок слишком длинный."
+          error:
+            "Заголовок слишком длинный."
         });
       }
 
       if (content.length > 100000) {
         return res.status(400).json({
-          error: "Новость слишком большая."
+          error:
+            "Новость слишком большая."
         });
       }
 
+      // ВАЖНО:
+      // В твоей таблице posts используется author_id,
+      // а не user_id.
       const result = await sql`
         INSERT INTO posts (
           title,
           content,
-          user_id
+          author_id,
+          published
         )
         VALUES (
           ${title},
           ${content},
-          ${dbUser[0].id}
+          ${dbUser[0].id},
+          true
         )
         RETURNING
           id,
           title,
           content,
+          author_id,
+          published,
           created_at
       `;
 
       return res.status(201).json({
         success: true,
+
         post: {
           ...result[0],
           username: dbUser[0].username,
@@ -203,10 +217,15 @@ export default async function handler(req, res) {
 
     } catch (error) {
 
-      console.error("CREATE POST ERROR:", error);
+      console.error(
+        "CREATE POST ERROR:",
+        error
+      );
 
       return res.status(500).json({
-        error: error?.message || "Не удалось опубликовать новость."
+        error:
+          error?.message ||
+          "Не удалось опубликовать новость."
       });
     }
   }
